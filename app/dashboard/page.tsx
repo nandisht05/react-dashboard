@@ -10,15 +10,15 @@ export default async function DashboardPage() {
 
     if (!session?.user) {
         return (
-            <div className="min-h-screen bg-white flex flex-col">
+            <div className="min-h-screen flex flex-col">
                 <Navbar />
                 <div className="flex-1 flex flex-col items-center justify-center">
                     <div className="container py-20 max-w-screen-lg text-center space-y-8">
                         <div className="mx-auto w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-6">
                             <Lock className="h-8 w-8 text-orange-600" />
                         </div>
-                        <h1 className="text-4xl font-bold tracking-tight text-gray-900">User Dashboard</h1>
-                        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                        <h1 className="text-4xl font-bold tracking-tight text-white">User Dashboard</h1>
+                        <p className="text-xl text-white/70 max-w-2xl mx-auto">
                             Manage your projects, view analytics, and control your subscription from one central hub.
                         </p>
 
@@ -71,7 +71,7 @@ export default async function DashboardPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen">
             <Navbar />
             <div className="container py-10 max-w-screen-xl space-y-8">
                 <div className="flex items-center justify-between border-b pb-4 border-orange-100">
@@ -80,7 +80,9 @@ export default async function DashboardPage() {
                         <p className="text-muted-foreground mt-1">Welcome back, {session.user.name}</p>
                     </div>
                     <div className="flex gap-2">
-                        <Button className="bg-orange-500 hover:bg-orange-600">New Project</Button>
+                        <Link href="/dashboard/projects/new">
+                            <Button className="bg-orange-500 hover:bg-orange-600">New Project</Button>
+                        </Link>
                     </div>
                 </div>
 
@@ -196,8 +198,8 @@ export default async function DashboardPage() {
                             </CardHeader>
                             <CardContent>
                                 <div className="flex items-center gap-2 mb-4">
-                                    <Star className="h-5 w-5 text-yellow-300" fill="currentColor" />
-                                    <span className="font-bold">Unlimited Access</span>
+                                    <Star className="h-5 w-5 text-[#f97316]" fill="currentColor" />
+                                    <span className="font-bold text-white">Unlimited Access</span>
                                 </div>
                                 <Button variant="secondary" className="w-full bg-white text-orange-600 hover:bg-orange-50">Manage Subscription</Button>
                             </CardContent>

@@ -13,15 +13,15 @@ export default async function AdminPage() {
     // Public View (Not logged in or not admin)
     if (!session?.user || session.user.role !== 'admin') {
         return (
-            <div className="min-h-screen bg-white flex flex-col">
+            <div className="min-h-screen flex flex-col">
                 <Navbar />
                 <div className="flex-1 flex flex-col items-center justify-center">
                     <div className="container py-20 max-w-screen-lg text-center space-y-8">
                         <div className="mx-auto w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-6">
                             <Shield className="h-8 w-8 text-orange-600" />
                         </div>
-                        <h1 className="text-4xl font-bold tracking-tight text-gray-900">Admin Console</h1>
-                        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                        <h1 className="text-4xl font-bold tracking-tight text-white">Admin Console</h1>
+                        <p className="text-xl text-white/70 max-w-2xl mx-auto">
                             Centralized control for user management, system security, and operational oversight.
                         </p>
 
@@ -89,7 +89,7 @@ export default async function AdminPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen">
             <Navbar />
             <div className="container py-10 max-w-screen-xl space-y-8">
                 <div className="flex items-center justify-between border-b border-orange-100 pb-4">
@@ -98,7 +98,9 @@ export default async function AdminPage() {
                         <p className="text-muted-foreground mt-1">System Overview & Management</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" className="border-orange-200 text-orange-700 hover:bg-orange-50">Settings</Button>
+                        <Link href="/admin/settings">
+                            <Button variant="outline" className="border-orange-200 text-orange-700 hover:bg-orange-50">Settings</Button>
+                        </Link>
                         <Button className="bg-orange-500 hover:bg-orange-600">Invite User</Button>
                     </div>
                 </div>

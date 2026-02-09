@@ -6,7 +6,7 @@ import { CheckCircle, ArrowRight, Zap, Shield, BarChart } from 'lucide-react';
 
 export default function WelcomePage() {
     return (
-        <div className="min-h-screen bg-white flex flex-col">
+        <div className="min-h-screen flex flex-col">
             <Navbar />
             <div className="flex-1 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-3xl w-full text-center space-y-8">
@@ -16,7 +16,7 @@ export default function WelcomePage() {
                         <div className="mx-auto w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center animate-in zoom-in duration-500">
                             <CheckCircle className="h-10 w-10 text-orange-600" />
                         </div>
-                        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">
+                        <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
                             Welcome Aboard!
                         </h1>
                         <p className="max-w-xl mx-auto text-xl text-muted-foreground">

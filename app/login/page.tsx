@@ -90,7 +90,7 @@ export default function LoginPage() {
     return (
         <>
             {/* Optional: Add Navbar here if you want navigation on auth pages, usually cleaner without or minimal */}
-            <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+            <div className="flex min-h-screen items-center justify-center p-4">
                 <Card className="w-full max-w-sm">
                     <CardHeader>
                         <CardTitle className="text-2xl">Login</CardTitle>
