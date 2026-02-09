@@ -46,3 +46,5 @@ sqlite.db-journal
 
 # scripts (optional - contains debug scripts)
 /scripts
+
+.vercel

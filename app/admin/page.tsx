@@ -164,7 +164,7 @@ export default async function AdminPage() {
                                             </tr>
                                         </thead>
                                         <tbody className="[&_tr:last-child]:border-0">
-                                            {recentUsers.map((user) => (
+                                            {recentUsers.map((user: any) => (
                                                 <tr key={user.id} className="border-b border-orange-50 transition-colors hover:bg-orange-50/50">
                                                     <td className="p-4 align-middle font-medium">{user.name}</td>
                                                     <td className="p-4 align-middle">{user.email}</td>

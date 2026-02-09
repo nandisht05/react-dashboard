@@ -10,8 +10,8 @@ import bcrypt from 'bcryptjs';
 // Helper to fetch user from database
 async function getUser(email: string) {
     try {
-        const user = db.select().from(users).where(eq(users.email, email)).get();
-        return user;
+        const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+        return result[0];
     } catch (error) {
         console.error('Failed to fetch user:', error);
         throw new Error('Failed to fetch user');

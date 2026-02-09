@@ -28,7 +28,9 @@ export async function signup(prevState: string | undefined, formData: FormData) 
     try {
         console.log(`[SIGNUP DEBUG] Attempting signup for: ${email}`);
 
-        const existingUser = db.select().from(users).where(eq(users.email, email)).get();
+        const existingUsers = await db.select().from(users).where(eq(users.email, email)).limit(1);
+        const existingUser = existingUsers[0];
+
         if (existingUser) {
             console.log(`[SIGNUP DEBUG] Email already exists: ${email}`);
             return 'Email already in use';
@@ -39,18 +41,18 @@ export async function signup(prevState: string | undefined, formData: FormData) 
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Check if it's the first user
-        const userCountResult = db.select({ count: sql<number>`count(*)` }).from(users).get();
-        const userCount = userCountResult?.count ?? 0;
+        const userCountResult = await db.select({ count: sql<number>`count(*)` }).from(users);
+        const userCount = Number(userCountResult[0]?.count ?? 0);
 
         const isFirstUser = userCount === 0;
 
-        db.insert(users).values({
+        await db.insert(users).values({
             name,
             email,
             password: hashedPassword,
             role: isFirstUser ? 'admin' : 'user',
             isApproved: true, // Auto-approve all users
-        }).run();
+        });
 
         console.log(`[SIGNUP DEBUG] User created successfully. Auto-approved.`);
         return 'Success';
@@ -86,7 +88,7 @@ export async function authenticate(
 export async function approveUser(formData: FormData) {
     const email = formData.get('email') as string;
     try {
-        db.update(users).set({ isApproved: true }).where(eq(users.email, email)).run();
+        await db.update(users).set({ isApproved: true }).where(eq(users.email, email));
         revalidatePath('/admin');
     } catch (error) {
         console.error('Failed to approve user:', error);

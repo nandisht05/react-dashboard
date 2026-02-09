@@ -2,9 +2,9 @@ import { db } from './db';
 import { users } from './schema';
 import { desc, eq, sql } from 'drizzle-orm';
 
-export function getRecentUsers() {
+export async function getRecentUsers() {
     try {
-        const result = db.select().from(users).orderBy(desc(users.id)).limit(5).all();
+        const result = await db.select().from(users).orderBy(desc(users.id)).limit(5);
         return result;
     } catch (error) {
         console.error('Failed to fetch recent users:', error);
@@ -14,14 +14,14 @@ export function getRecentUsers() {
 
 export async function getUserStats() {
     try {
-        const totalResult = db.select({ count: sql<number>`count(*)` }).from(users).get();
-        const approvedResult = db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.isApproved, true)).get();
-        const pendingResult = db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.isApproved, false)).get();
+        const totalResult = await db.select({ count: sql<number>`count(*)` }).from(users);
+        const approvedResult = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.isApproved, true));
+        const pendingResult = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.isApproved, false));
 
         return {
-            total: totalResult?.count ?? 0,
-            approved: approvedResult?.count ?? 0,
-            pending: pendingResult?.count ?? 0
+            total: Number(totalResult[0]?.count ?? 0),
+            approved: Number(approvedResult[0]?.count ?? 0),
+            pending: Number(pendingResult[0]?.count ?? 0)
         };
     } catch (error) {
         console.error('Failed to fetch stats:', error);
