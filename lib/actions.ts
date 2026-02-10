@@ -24,28 +24,50 @@ async function openRouterRequest(
     messages: any[],
     model = 'google/gemma-3-12b-it:free'
 ) {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-            'HTTP-Referer': 'https://github.com/nandisht05/react-dashboard', // Optional, for OpenRouter rankings
-            'X-Title': 'YouTube Summarizer', // Optional
-        },
-        body: JSON.stringify({
-            model: model,
-            messages: messages
-        })
-    });
+    const fallbackModels = [
+        'google/gemma-3-12b-it:free',
+        'mistralai/mistral-small-3.1-24b-instruct:free',
+        'google/gemma-3-4b-it:free',
+        'meta-llama/llama-3.3-70b-instruct:free',
+        'qwen/qwen3-coder:free'
+    ];
 
-    if (!response.ok) {
-        const error = await response.json();
-        console.error('[OpenRouter Error Detail]:', JSON.stringify(error, null, 2));
-        throw new Error(error.error?.message || 'OpenRouter API failed');
+    let lastError: any = null;
+    const modelsToTry = [model, ...fallbackModels.filter(m => m !== model)];
+
+    for (const currentModel of modelsToTry) {
+        try {
+            console.log(`[OpenRouter] Attempting with model: ${currentModel}`);
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`,
+                    'HTTP-Referer': 'https://github.com/nandisht05/react-dashboard',
+                    'X-Title': 'YouTube Summarizer',
+                },
+                body: JSON.stringify({
+                    model: currentModel,
+                    messages: messages
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                console.warn(`[OpenRouter] Model ${currentModel} failed:`, error.error?.message);
+                lastError = error;
+                continue; // Try next model
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        } catch (err) {
+            console.error(`[OpenRouter] Network error with ${currentModel}:`, err);
+            lastError = err;
+        }
     }
 
-    const data = await response.json();
-    return data.choices[0].message.content;
+    throw new Error(lastError?.error?.message || lastError?.message || 'OpenRouter API failed after all fallbacks');
 }
 
 async function retryWithExponentialBackoff<T>(
