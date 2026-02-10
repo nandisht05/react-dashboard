@@ -1,212 +1,144 @@
-import { auth, signOut } from '@/auth';
+'use client';
+
+import { useState } from 'react';
+import { Navbar } from '@/components/layout/navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Navbar } from '@/components/layout/navbar';
-import { Activity, CreditCard, DollarSign, Users, Folder, Star, Lock } from 'lucide-react';
-import Link from 'next/link';
+import { Input } from '@/components/ui/input';
+import { Youtube, Sparkles, Loader2, BookOpen, Clock, Lightbulb } from 'lucide-react';
+import { summarizeYoutubeVideo } from '@/lib/actions';
 
-export default async function DashboardPage() {
-    const session = await auth();
+export default function DashboardPage() {
+    const [url, setUrl] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [result, setResult] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
-    if (!session?.user) {
-        return (
-            <div className="min-h-screen flex flex-col">
-                <Navbar />
-                <div className="flex-1 flex flex-col items-center justify-center">
-                    <div className="container py-20 max-w-screen-lg text-center space-y-8">
-                        <div className="mx-auto w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-6">
-                            <Lock className="h-8 w-8 text-orange-600" />
-                        </div>
-                        <h1 className="text-4xl font-bold tracking-tight text-white">User Dashboard</h1>
-                        <p className="text-xl text-white/70 max-w-2xl mx-auto">
-                            Manage your projects, view analytics, and control your subscription from one central hub.
-                        </p>
+    const handleGenerate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!url) return;
 
-                        <div className="grid gap-8 md:grid-cols-3 py-10 text-left">
-                            <Card className="border-orange-100">
-                                <CardHeader>
-                                    <CardTitle className="text-orange-600">Real-time Analytics</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    Monitor your revenue, sales, and user growth with live data updates.
-                                </CardContent>
-                            </Card>
-                            <Card className="border-orange-100">
-                                <CardHeader>
-                                    <CardTitle className="text-orange-600">Project Management</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    Track status, collaborators, and deadlines for all your active initiatives.
-                                </CardContent>
-                            </Card>
-                            <Card className="border-orange-100">
-                                <CardHeader>
-                                    <CardTitle className="text-orange-600">Subscription Control</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    Manage your billing cycle, upgrade plans, and view invoice history easily.
-                                </CardContent>
-                            </Card>
-                        </div>
+        setLoading(true);
+        setError(null);
+        setResult(null);
 
-                        <div className="space-x-4">
-                            <Link href="/login">
-                                <Button size="lg" className="bg-orange-500 hover:bg-orange-600">Log In to View</Button>
-                            </Link>
-                            <Link href="/signup">
-                                <Button variant="outline" size="lg" className="text-orange-600 border-orange-200 hover:bg-orange-50">Create Account</Button>
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    const projects = [
-        { name: "Website Redesign", status: "Active", lastUpdated: "2 mins ago", role: "Owner" },
-        { name: "Mobile App API", status: "In Progress", lastUpdated: "1 hour ago", role: "Contributor" },
-        { name: "Documentation", status: "Completed", lastUpdated: "1 day ago", role: "Viewer" },
-        { name: "Analytics Dashboard", status: "Active", lastUpdated: "3 days ago", role: "Owner" },
-    ];
+        try {
+            const response = await summarizeYoutubeVideo(url);
+            if (response.success) {
+                setResult(response.data);
+            } else {
+                setError(response.error || 'Failed to summarize video');
+            }
+        } catch (err: any) {
+            setError(err.message || 'An unexpected error occurred');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
-        <div className="min-h-screen">
+        <div className="min-h-screen bg-[#0a0a0a] text-white">
             <Navbar />
-            <div className="container py-10 max-w-screen-xl space-y-8">
-                <div className="flex items-center justify-between border-b pb-4 border-orange-100">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-orange-600">Dashboard</h1>
-                        <p className="text-muted-foreground mt-1">Welcome back, {session.user.name}</p>
+
+            <main className="container max-w-4xl py-12 px-4 md:py-20 space-y-12">
+                {/* Hero Section */}
+                <div className="text-center space-y-4">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 text-sm font-medium mb-4">
+                        <Sparkles className="w-4 h-4" />
+                        <span>AI-Powered Learning</span>
                     </div>
-                    <div className="flex gap-2">
-                        <Link href="/dashboard/projects/new">
-                            <Button className="bg-orange-500 hover:bg-orange-600">New Project</Button>
-                        </Link>
-                    </div>
+                    <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                        YouTube into Study Notes
+                    </h1>
+                    <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
+                        Paste a YouTube link and get a comprehensive summary with structured study notes in seconds.
+                    </p>
                 </div>
 
-                {/* Stats Row */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card className="border-orange-100 shadow-sm">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                            <DollarSign className="h-4 w-4 text-orange-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">$45,231.89</div>
-                            <p className="text-xs text-muted-foreground">+20.1% from last month</p>
-                        </CardContent>
-                    </Card>
-                    <Card className="border-orange-100 shadow-sm">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Subscriptions</CardTitle>
-                            <Users className="h-4 w-4 text-orange-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">+2350</div>
-                            <p className="text-xs text-muted-foreground">+180.1% from last month</p>
-                        </CardContent>
-                    </Card>
-                    <Card className="border-orange-100 shadow-sm">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Sales</CardTitle>
-                            <CreditCard className="h-4 w-4 text-orange-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">+12,234</div>
-                            <p className="text-xs text-muted-foreground">+19% from last month</p>
-                        </CardContent>
-                    </Card>
-                    <Card className="border-orange-100 shadow-sm">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Active Now</CardTitle>
-                            <Activity className="h-4 w-4 text-orange-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">+573</div>
-                            <p className="text-xs text-muted-foreground">+201 since last hour</p>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-7">
-                    {/* Projects Table */}
-                    <Card className="col-span-4 border-orange-200">
-                        <CardHeader>
-                            <CardTitle>Recent Projects</CardTitle>
-                            <CardDescription>
-                                Manage your ongoing work.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {projects.map((project, i) => (
-                                    <div key={i} className="flex items-center justify-between p-4 border rounded-lg border-orange-50 bg-orange-50/30">
-                                        <div className="flex items-center gap-4">
-                                            <div className="p-2 bg-orange-100 rounded-full">
-                                                <Folder className="h-4 w-4 text-orange-600" />
-                                            </div>
-                                            <div>
-                                                <p className="font-medium">{project.name}</p>
-                                                <p className="text-xs text-muted-foreground">Updated {project.lastUpdated}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <span className={`text-xs px-2 py-1 rounded-full ${project.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                                                {project.status}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))}
+                {/* Search Bar Section */}
+                <Card className="border-orange-500/20 bg-black/40 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent pointer-events-none" />
+                    <CardContent className="pt-8 pb-8 px-6 md:px-12">
+                        <form onSubmit={handleGenerate} className="flex flex-col md:flex-row gap-4">
+                            <div className="relative flex-1">
+                                <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+                                <Input
+                                    placeholder="https://www.youtube.com/watch?v=..."
+                                    className="pl-12 h-14 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:ring-orange-500/50 focus:border-orange-500 rounded-xl text-lg"
+                                    value={url}
+                                    onChange={(e) => setUrl(e.target.value)}
+                                />
                             </div>
-                        </CardContent>
-                    </Card>
+                            <Button
+                                type="submit"
+                                disabled={loading || !url}
+                                className="h-14 px-8 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                        Analyzing...
+                                    </>
+                                ) : (
+                                    <>
+                                        Generate Notes
+                                        <Sparkles className="ml-2 h-5 w-5" />
+                                    </>
+                                )}
+                            </Button>
+                        </form>
+                        {error && (
+                            <p className="mt-4 text-red-400 text-sm text-center font-medium bg-red-400/10 py-2 rounded-lg border border-red-400/20">
+                                {error}
+                            </p>
+                        )}
+                    </CardContent>
+                </Card>
 
-                    {/* Account & Activity Section */}
-                    <div className="col-span-3 space-y-4">
-                        <Card className="border-orange-200">
-                            <CardHeader>
-                                <CardTitle>Quick Details</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex items-center justify-between py-2 border-b border-orange-50">
-                                    <span className="text-sm font-medium text-muted-foreground">User Role</span>
-                                    <span className="font-medium capitalize">{session.user.role}</span>
-                                </div>
-                                <div className="flex items-center justify-between py-2 border-b border-orange-50">
-                                    <span className="text-sm font-medium text-muted-foreground">Status</span>
-                                    <span className="text-sm text-green-600 font-medium bg-green-50 px-2 py-0.5 rounded-full">Active</span>
-                                </div>
-                                <div className="pt-2">
-                                    <form
-                                        action={async () => {
-                                            'use server';
-                                            await signOut();
-                                        }}
-                                    >
-                                        <Button variant="outline" className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-100">Sign Out</Button>
-                                    </form>
-                                </div>
-                            </CardContent>
-                        </Card>
+                {/* Features / Empty State */}
+                {!result && !loading && (
+                    <div className="grid md:grid-cols-3 gap-6 pt-8">
+                        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 space-y-3 hover:bg-white/[0.07] transition-colors">
+                            <Clock className="w-10 h-10 text-orange-500" />
+                            <h3 className="text-lg font-bold">Save Hours</h3>
+                            <p className="text-sm text-gray-400">Watch 10-minute videos in 30 seconds of reading time.</p>
+                        </div>
+                        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 space-y-3 hover:bg-white/[0.07] transition-colors">
+                            <BookOpen className="w-10 h-10 text-orange-500" />
+                            <h3 className="text-lg font-bold">Structured Notes</h3>
+                            <p className="text-sm text-gray-400">Get organized takeaways ready for obsidian, notion or your favorite app.</p>
+                        </div>
+                        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 space-y-3 hover:bg-white/[0.07] transition-colors">
+                            <Lightbulb className="w-10 h-10 text-orange-500" />
+                            <h3 className="text-lg font-bold">Key Definitions</h3>
+                            <p className="text-sm text-gray-400">Complex terms explained simply as they appear in the video.</p>
+                        </div>
+                    </div>
+                )}
 
-                        <Card className="bg-orange-600 text-white border-none">
-                            <CardHeader>
-                                <CardTitle className="text-white">Pro Plan</CardTitle>
-                                <CardDescription className="text-orange-100">You are on the premium tier.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex items-center gap-2 mb-4">
-                                    <Star className="h-5 w-5 text-[#f97316]" fill="currentColor" />
-                                    <span className="font-bold text-white">Unlimited Access</span>
+                {/* Results Section */}
+                {result && (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-700">
+                        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                            <h2 className="text-2xl font-bold flex items-center gap-2">
+                                <Sparkles className="w-6 h-6 text-orange-500" />
+                                AI Study Companion
+                            </h2>
+                            <Button variant="outline" className="text-white border-white/10 hover:bg-white/10" onClick={() => window.print()}>
+                                Export PDF
+                            </Button>
+                        </div>
+
+                        <Card className="bg-black/40 border-white/10 text-white shadow-xl">
+                            <CardContent className="p-8 md:p-12 prose prose-invert max-w-none">
+                                <div className="space-y-6 text-gray-200 leading-relaxed whitespace-pre-wrap">
+                                    {result}
                                 </div>
-                                <Button variant="secondary" className="w-full bg-white text-orange-600 hover:bg-orange-50">Manage Subscription</Button>
                             </CardContent>
                         </Card>
                     </div>
-                </div>
-            </div>
+                )}
+            </main>
         </div>
     );
 }

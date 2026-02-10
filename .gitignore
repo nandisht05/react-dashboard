@@ -31,6 +31,13 @@ yarn-error.log*
 
 # vercel
 .vercel
+# Temporary files
+test-output-*
+openrouter_models*
+free_ids.txt
+free_models.txt
+test-openrouter.ts
+test-e2e.ts
 
 # typescript
 *.tsbuildinfo
