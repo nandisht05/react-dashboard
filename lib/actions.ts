@@ -12,6 +12,10 @@ import { YoutubeTranscript } from 'youtube-transcript';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Innertube } from 'youtubei.js';
 
+export type SummarizeResult =
+    | { success: true; data: string }
+    | { success: false; error: string };
+
 const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || '';
 const isOpenRouter = apiKey.startsWith('sk-or-');
 const genAI = !isOpenRouter ? new GoogleGenerativeAI(apiKey) : null;
@@ -155,7 +159,7 @@ export async function approveUser(formData: FormData) {
     }
 }
 
-export async function summarizeYoutubeVideo(videoUrl: string) {
+export async function summarizeYoutubeVideo(videoUrl: string): Promise<SummarizeResult> {
     if (!videoUrl) {
         throw new Error('Video URL is required');
     }
@@ -279,35 +283,35 @@ export async function summarizeYoutubeVideo(videoUrl: string) {
         }
 
         let text = '';
+        const systemPrompt = `
+You are an elite educational assistant. I will provide a transcript of a YouTube video.
+Your task is to:
+1. Provide a concise high-level summary of the video.
+2. Generate clean, structured study notes.
+3. Highlight key takeaways, important definitions, and any actionable insights.
+4. Use professional, clear formatting with Markdown.
+`;
+
         if (isOpenRouter) {
             console.log(`[AI] Generating result with OpenRouter...`);
-            const prompt = contentType === 'transcript'
-                ? `Provide a concise high-level summary and structured study notes for this YouTube video transcript:\n\n${contentToAnalyze.substring(0, 50000)}`
-                : `Provide a concise high-level summary and structured study notes for the provided audio content. (Note: Audio processing through OpenRouter may vary by model).`;
+            const userPrompt = contentType === 'transcript'
+                ? `Transcript:\n${contentToAnalyze.substring(0, 50000)}`
+                : `Please analyze the provided audio content.`;
 
             text = await retryWithExponentialBackoff(() => openRouterRequest([
-                { role: 'user', content: prompt }
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt }
             ]));
         } else if (genAI) {
             console.log(`[AI] Generating result with Gemini SDK...`);
             const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
             let result;
             if (contentType === 'transcript') {
-                const prompt = `
-                You are an elite educational assistant. I will provide a transcript of a YouTube video.
-                Your task is to:
-                1. Provide a concise high-level summary of the video.
-                2. Generate clean, structured study notes.
-                3. Highlight key takeaways, important definitions, and any actionable insights.
-                4. Use professional, clear formatting with Markdown.
-                
-                Transcript:
-                ${contentToAnalyze.substring(0, 50000)}
-                `;
+                const prompt = `${systemPrompt}\n\nTranscript:\n${contentToAnalyze.substring(0, 50000)}`;
                 result = await retryWithExponentialBackoff(() => model.generateContent(prompt));
             } else {
                 // Audio input
-                const prompt = "You are an elite educational assistant. Listen to this video audio and provide a concise summary and structured study notes.";
+                const prompt = `${systemPrompt}\n\nPlease listen to this video audio and follow the instructions.`;
                 result = await retryWithExponentialBackoff(() => model.generateContent([
                     prompt,
                     {
