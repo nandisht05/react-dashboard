@@ -326,7 +326,7 @@ Your task is to:
             ]));
         } else if (genAI) {
             console.log(`[AI] Generating result with Gemini SDK...`);
-            const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+            const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
             let result;
             if (contentType === 'transcript') {
                 const prompt = `${systemPrompt}\n\nTranscript:\n${contentToAnalyze.substring(0, 50000)}`;
