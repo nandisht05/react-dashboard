@@ -326,25 +326,52 @@ Your task is to:
             ]));
         } else if (genAI) {
             console.log(`[AI] Generating result with Gemini SDK...`);
-            const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-            let result;
-            if (contentType === 'transcript') {
-                const prompt = `${systemPrompt}\n\nTranscript:\n${contentToAnalyze.substring(0, 50000)}`;
-                result = await retryWithExponentialBackoff(() => model.generateContent(prompt));
-            } else {
-                // Audio input
-                const prompt = `${systemPrompt}\n\nPlease listen to this video audio and follow the instructions.`;
-                result = await retryWithExponentialBackoff(() => model.generateContent([
-                    prompt,
-                    {
-                        inlineData: {
-                            mimeType: "audio/mp3",
-                            data: contentToAnalyze
-                        }
+
+            const geminiModels = [
+                'gemini-1.5-flash',
+                'gemini-1.5-pro',
+                'gemini-2.0-flash-exp',
+                'gemini-pro'
+            ];
+
+            let lastGeminiError: any = null;
+            let success = false;
+
+            for (const modelName of geminiModels) {
+                try {
+                    console.log(`[Gemini] Attempting with model: ${modelName}`);
+                    const model = genAI.getGenerativeModel({ model: modelName });
+                    let result;
+
+                    if (contentType === 'transcript') {
+                        const prompt = `${systemPrompt}\n\nTranscript:\n${contentToAnalyze.substring(0, 50000)}`;
+                        result = await retryWithExponentialBackoff(() => model.generateContent(prompt));
+                    } else {
+                        // Audio input
+                        const prompt = `${systemPrompt}\n\nPlease listen to this video audio and follow the instructions.`;
+                        result = await retryWithExponentialBackoff(() => model.generateContent([
+                            prompt,
+                            {
+                                inlineData: {
+                                    mimeType: "audio/mp3",
+                                    data: contentToAnalyze
+                                }
+                            }
+                        ]));
                     }
-                ]));
+                    text = result.response.text();
+                    success = true;
+                    break; // Success!
+
+                } catch (error: any) {
+                    console.warn(`[Gemini] Model ${modelName} failed:`, error.message);
+                    lastGeminiError = error;
+                }
             }
-            text = result.response.text();
+
+            if (!success) {
+                throw new Error(lastGeminiError?.message || 'All Gemini models failed.');
+            }
         }
 
         return {
